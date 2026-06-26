@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حجز الكتاب — القائمة الأولى</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0d0b18;
+    --surface:  #13112299;
+    --border:   #2a2550;
+    --purple:   #a78bfa;
+    --purple-dim:#6d5fcf;
+    --yellow:   #f5c542;
+    --text:     #e8e4f7;
+    --muted:    #7c74a8;
+    --radius:   14px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Amiri', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ─── GLOW BLOBS ─── */
+  .blob {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .blob-1 { width: 600px; height: 600px; background: #7c3aed; top: -200px; right: -150px; }
+  .blob-2 { width: 400px; height: 400px; background: #f5c542; bottom: -100px; left: -100px; opacity: 0.08; }
+
+  /* ─── LAYOUT ─── */
+  .wrapper {
+    position: relative; z-index: 1;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 60px 24px 80px;
+    display: flex; flex-direction: column; align-items: center; gap: 48px;
+  }
+
+  /* ─── BADGE ─── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #1e1a3a;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 8px 20px;
+    font-size: 13px;
+    color: var(--purple);
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: 0.04em;
+  }
+  .badge-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--yellow);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  /* ─── HERO TEXT ─── */
+  .hero { text-align: center; }
+  .hero-sub {
+    font-size: 14px;
+    color: var(--muted);
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .hero-title {
+    font-size: clamp(36px, 8vw, 64px);
+    font-weight: 900;
+    line-height: 1.15;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .hero-title span { color: var(--purple); }
+  .hero-accent {
+    font-size: clamp(18px, 4vw, 28px);
+    font-weight: 700;
+    color: var(--yellow);
+    margin-bottom: 20px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .hero-body {
+    font-size: 16px;
+    color: var(--muted);
+    line-height: 1.8;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* ─── STAT CHIPS ─── */
+  .stats {
+    display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+  }
+  .stat-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 24px;
+    text-align: center;
+    backdrop-filter: blur(12px);
+    min-width: 130px;
+  }
+  .stat-chip .num {
+    font-size: 26px; font-weight: 900;
+    color: var(--yellow);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .stat-chip .lbl {
+    font-size: 12px; color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* ─── DIVIDER ─── */
+  .divider {
+    width: 100%;
+    border: none;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ─── FORM CARD ─── */
+  .form-card {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 32px;
+    backdrop-filter: blur(16px);
+    position: relative;
+    overflow: hidden;
+  }
+  .form-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--purple), var(--yellow), var(--purple));
+    background-size: 200%;
+    animation: shimmer 3s linear infinite;
+  }
+  @keyframes shimmer {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+
+  .form-title {
+    font-size: 20px; font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .form-sub {
+    font-size: 13px; color: var(--muted);
+    margin-bottom: 28px;
+    line-height: 1.7;
+  }
+  .form-sub b { color: var(--yellow); }
+
+  .field { margin-bottom: 18px; }
+  .field label {
+    display: block;
+    font-size: 13px; color: var(--muted);
+    margin-bottom: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: 0.03em;
+  }
+  .field input, .field select {
+    width: 100%;
+    background: #0d0b18;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 15px;
+    color: var(--text);
+    font-family: 'Amiri', serif;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    appearance: none;
+  }
+  .field input::placeholder { color: #3d3663; }
+  .field input:focus, .field select:focus {
+    border-color: var(--purple-dim);
+    box-shadow: 0 0 0 3px #6d5fcf22;
+  }
+  .field select option { background: #13112a; }
+
+  .btn-submit {
+    width: 100%;
+    background: linear-gradient(135deg, #6d28d9, #a78bfa);
+    border: none;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 17px; font-weight: 700;
+    color: #fff;
+    font-family: 'Amiri', serif;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    letter-spacing: 0.02em;
+  }
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px #7c3aed55;
+  }
+  .btn-submit:active { transform: translateY(0); }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ─── SUCCESS STATE ─── */
+  .success-box {
+    display: none;
+    flex-direction: column; align-items: center;
+    text-align: center; gap: 16px;
+    padding: 20px 0;
+  }
+  .success-icon {
+    font-size: 52px;
+    animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popIn {
+    0%   { transform: scale(0); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .success-title { font-size: 22px; font-weight: 900; color: #fff; }
+  .success-body { font-size: 14px; color: var(--muted); line-height: 1.8; max-width: 360px; }
+  .success-body b { color: var(--yellow); }
+  .success-tag {
+    background: #1e1a3a;
+    border: 1px solid var(--purple-dim);
+    border-radius: 100px;
+    padding: 8px 20px;
+    font-size: 13px;
+    color: var(--purple);
+  }
+
+  /* ─── FOOTER NOTE ─── */
+  .note {
+    font-size: 12px; color: var(--muted);
+    text-align: center;
+    line-height: 1.8;
+  }
+
+  /* ─── ADMIN MODAL ─── */
+  .overlay {
+    display: none; position: fixed; inset: 0;
+    background: #0009; backdrop-filter: blur(8px);
+    z-index: 200; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: #13112a;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    width: 100%; max-width: 860px;
+    max-height: 90vh;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-header h2 { font-size: 18px; }
+  .modal-close {
+    background: none; border: none;
+    color: var(--muted); font-size: 22px;
+    cursor: pointer; line-height: 1;
+  }
+  .modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+
+  /* gate */
+  .gate { display: flex; flex-direction: column; gap: 16px; }
+  .gate textarea {
+    background: #0d0b18;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    color: var(--text);
+    font-family: 'Amiri', serif;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 90px;
+    outline: none;
+  }
+  .gate textarea:focus { border-color: var(--purple-dim); }
+  .gate-btn {
+    background: linear-gradient(135deg, #6d28d9, #a78bfa);
+    border: none; border-radius: 10px;
+    padding: 12px; font-size: 15px; font-weight: 700;
+    color: #fff; font-family: 'Amiri', serif;
+    cursor: pointer;
+  }
+  .gate-err { color: #f87171; font-size: 13px; }
+
+  /* table */
+  .admin-panel { display: none; flex-direction: column; gap: 16px; }
+  .admin-meta { display: flex; gap: 16px; flex-wrap: wrap; }
+  .meta-chip {
+    background: #0d0b18;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 18px;
+    font-size: 13px;
+  }
+  .meta-chip b { color: var(--yellow); font-size: 18px; }
+  .export-btn {
+    background: #1e1a3a;
+    border: 1px solid var(--purple-dim);
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 13px; color: var(--purple);
+    cursor: pointer; font-family: 'Amiri', serif;
+    align-self: flex-start;
+    transition: background 0.2s;
+  }
+  .export-btn:hover { background: #2d2550; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: right; padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+  }
+  td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #1e1a3a;
+    vertical-align: top;
+    word-break: break-all;
+  }
+  tr:last-child td { border-bottom: none; }
+  .code-cell {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--yellow);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+  }
+  .no-data { text-align: center; padding: 40px; color: var(--muted); }
+
+  @media (max-width: 480px) {
+    .form-card { padding: 24px 20px; }
+    .wrapper { padding: 40px 16px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+
+<div class="wrapper">
+
+  <!-- BADGE -->
+  <div class="badge">
+    <span class="badge-dot"></span>
+    إطلاق رسمي — 1 أغسطس 2026
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <p class="hero-sub">Pre-Launch · القائمة الأولى</p>
+    <h1 class="hero-title">الكتاب <span>قادم</span></h1>
+    <p class="hero-accent">خصم 10% — ليوم واحد فقط ⚡</p>
+    <p class="hero-body">
+      سجّل اسمك في القائمة الأولى، وفي يوم الإطلاق هيوصلك كود خصم خاص بيك على إيميلك
+    </p>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+    <div class="stat-chip">
+      <div class="num">1/8</div>
+      <div class="lbl">يوم الإطلاق</div>
+    </div>
+    <div class="stat-chip">
+      <div class="num">10%</div>
+      <div class="lbl">خصم حصري</div>
+    </div>
+    <div class="stat-chip">
+      <div class="num">24h</div>
+      <div class="lbl">مدة الكود</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- FORM CARD -->
+  <div class="form-card" id="formCard">
+
+    <!-- form -->
+    <div id="formInner">
+      <h2 class="form-title">احجز مكانك في القائمة</h2>
+      <p class="form-sub">
+        هيوصلك إيميل يوم <b>1 أغسطس</b> فيه كود خصم شخصي صالح <b>24 ساعة</b> بس
+      </p>
+
+      <div class="field">
+        <label>الاسم</label>
+        <input type="text" id="inp-name" placeholder="اسمك الكامل" autocomplete="name">
+      </div>
+
+      <div class="field">
+        <label>الإيميل</label>
+        <input type="email" id="inp-email" placeholder="example@email.com" autocomplete="email" dir="ltr">
+      </div>
+
+      <div class="field">
+        <label>المهنة</label>
+        <select id="inp-job">
+          <option value="" disabled selected>اختر مهنتك</option>
+          <option>طالب</option>
+          <option>طبيب / طبيبة</option>
+          <option>مهندس / مهندسة</option>
+          <option>معلم / معلمة</option>
+          <option>محاسب / محاسبة</option>
+          <option>مصمم / مصممة</option>
+          <option>رجل / سيدة أعمال</option>
+          <option>موظف / موظفة</option>
+          <option>فريلانسر</option>
+          <option>أخرى</option>
+        </select>
+      </div>
+
+      <button class="btn-submit" id="submitBtn" onclick="handleSubmit()">
+        انضم للقائمة الأولى ←
+      </button>
+    </div>
+
+    <!-- success -->
+    <div class="success-box" id="successBox">
+      <div class="success-icon">📌</div>
+      <div class="success-title">تم تسجيلك بنجاح!</div>
+      <div class="success-body">
+        يوم <b>1 أغسطس</b> هيوصلك إيميل على عنوانك فيه كود خصم <b>10%</b> خاص بيك — الكود شغّال <b>24 ساعة</b> بس.
+      </div>
+      <div class="success-tag" id="successEmail"></div>
+    </div>
+
+  </div>
+
+  <!-- NOTE -->
+  <p class="note">
+    ✦ بياناتك آمنة ومش هتتبعت لأي جهة خارجية<br>
+    هتاخد إيميل واحد بس — يوم الإطلاق
+  </p>
+
+</div>
+
+<!-- ADMIN OVERLAY -->
+<div class="overlay" id="adminOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>بوابة الإدارة</h2>
+      <button class="modal-close" onclick="closeAdmin()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- GATE -->
+      <div class="gate" id="gateSection">
+        <p style="font-size:14px;color:var(--muted)">ادخل العبارة السرية للدخول</p>
+        <textarea id="gateInput" placeholder="اكتب العبارة السرية هنا..."></textarea>
+        <button class="gate-btn" onclick="checkGate()">دخول</button>
+        <p class="gate-err" id="gateErr" style="display:none">❌ العبارة غلط، حاول تاني</p>
+      </div>
+
+      <!-- ADMIN PANEL -->
+      <div class="admin-panel" id="adminPanel">
+        <div class="admin-meta" id="adminMeta"></div>
+        <button class="export-btn" onclick="exportCSV()">⬇ تحميل CSV</button>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>الاسم</th>
+                <th>الإيميل</th>
+                <th>المهنة</th>
+                <th>كود الخصم</th>
+                <th>التاريخ</th>
+              </tr>
+            </thead>
+            <tbody id="adminTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── STORAGE KEY ───
+const KEY = 'bookLaunch_registrations';
+
+// ─── SECRET ───
+const SECRET = `I designed this book in 6 months. It's a very beautiful book. I believe in myself; I feel I'm going to be something great. I'm going to be a dentist. ❤️📌`;
+const SECRET_PASS = '205Mh##';
+
+function getRegs() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || []; }
+  catch { return []; }
+}
+function saveRegs(arr) {
+  localStorage.setItem(KEY, JSON.stringify(arr));
+}
+
+// ─── GENERATE UNIQUE DISCOUNT CODE ───
+function genCode(name, email) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let hash = 0;
+  const seed = name + email + Date.now();
+  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) & 0xffffffff;
+  let code = 'BOOK10-';
+  for (let i = 0; i < 6; i++) {
+    code += chars[Math.abs((hash >> i * 4) & 31) % chars.length];
+  }
+  return code;
+}
+
+// ─── SUBMIT ───
+function handleSubmit() {
+  const name  = document.getElementById('inp-name').value.trim();
+  const email = document.getElementById('inp-email').value.trim();
+  const job   = document.getElementById('inp-job').value;
+
+  // ── SECRET GATE: لو الاسم هو الجملة السرية أو الكود
+  if (name === SECRET || name === SECRET_PASS) {
+    openAdmin();
+    return;
+  }
+
+  if (!name || !email || !job) {
+    alert('من فضلك اكمل كل البيانات');
+    return;
+  }
+  const emailRx = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRx.test(email)) {
+    alert('إيميل غلط، راجع الإيميل');
+    return;
+  }
+
+  const regs = getRegs();
+  if (regs.find(r => r.email.toLowerCase() === email.toLowerCase())) {
+    alert('الإيميل ده اتسجل قبل كده ✓');
+    return;
+  }
+
+  const code = genCode(name, email);
+  const entry = {
+    id:    Date.now(),
+    name, email, job, code,
+    date:  new Date().toLocaleString('ar-EG')
+  };
+
+  regs.push(entry);
+  saveRegs(regs);
+
+  // show success
+  document.getElementById('formInner').style.display = 'none';
+  const box = document.getElementById('successBox');
+  box.style.display = 'flex';
+  document.getElementById('successEmail').textContent = email;
+}
+
+// ─── ADMIN ───
+function openAdmin() {
+  document.getElementById('adminOverlay').classList.add('open');
+  document.getElementById('gateSection').style.display = 'flex';
+  document.getElementById('adminPanel').style.display = 'none';
+  document.getElementById('gateInput').value = '';
+  document.getElementById('gateErr').style.display = 'none';
+}
+function closeAdmin() {
+  document.getElementById('adminOverlay').classList.remove('open');
+}
+
+function checkGate() {
+  const val = document.getElementById('gateInput').value.trim();
+  if (val === SECRET || val === SECRET_PASS) {
+    document.getElementById('gateSection').style.display = 'none';
+    const panel = document.getElementById('adminPanel');
+    panel.style.display = 'flex';
+    renderAdmin();
+  } else {
+    document.getElementById('gateErr').style.display = 'block';
+  }
+}
+
+function renderAdmin() {
+  const regs = getRegs();
+  // meta
+  const meta = document.getElementById('adminMeta');
+  meta.innerHTML = `
+    <div class="meta-chip"><b>${regs.length}</b><br>إجمالي التسجيلات</div>
+  `;
+  // table
+  const tbody = document.getElementById('adminTable');
+  if (!regs.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="no-data">لا يوجد تسجيلات بعد</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = regs.map((r,i) => `
+    <tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td>${r.name}</td>
+      <td dir="ltr" style="font-family:'Space Grotesk',sans-serif;font-size:12px">${r.email}</td>
+      <td>${r.job}</td>
+      <td class="code-cell">${r.code}</td>
+      <td style="color:var(--muted);font-size:11px">${r.date}</td>
+    </tr>
+  `).join('');
+}
+
+function exportCSV() {
+  const regs = getRegs();
+  if (!regs.length) { alert('لا يوجد بيانات للتحميل'); return; }
+  const header = ['#', 'الاسم', 'الإيميل', 'المهنة', 'كود الخصم', 'تاريخ التسجيل'];
+  const rows = regs.map((r,i) => [i+1, r.name, r.email, r.job, r.code, r.date]);
+  const csv = [header, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `book-launch-registrations-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// close overlay on outside click
+document.getElementById('adminOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeAdmin();
+});
+</script>
+</body>
+</html>
